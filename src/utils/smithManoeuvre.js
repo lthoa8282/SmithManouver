@@ -7,6 +7,8 @@
  * @param {number} params.annualReturn Expected annual return of the ETF (e.g., 0.08 for 8%).
  * @param {number} params.years Number of years to project.
  * @param {boolean} params.capitalizeInterest True if borrowing to pay interest.
+ * @param {number} params.periodicContribution Amount to add to HELOC and invest periodically.
+ * @param {string} params.contributionFrequency 'monthly' or 'annually'.
  * @returns {object} { yearlyData: Array, summary: Object }
  */
 export function calculateSmithManoeuvre({
@@ -15,7 +17,9 @@ export function calculateSmithManoeuvre({
     marginalTaxRate,
     annualReturn,
     years,
-    capitalizeInterest
+    capitalizeInterest,
+    periodicContribution = 0,
+    contributionFrequency = 'annually'
 }) {
     const yearlyData = [];
     let currentLoan = initialInvestment;
@@ -24,32 +28,33 @@ export function calculateSmithManoeuvre({
     let totalInterestPaid = 0;
     let totalTaxRefunds = 0;
 
+    // Calculate total annual contribution
+    const totalAnnualContribution = contributionFrequency === 'monthly' ? periodicContribution * 12 : periodicContribution;
+
     for (let year = 1; year <= years; year++) {
-        // 1. Calculate Interest for the year based on current loan balance
+        // 1. Process new contributions (assume added at start/throughout year, so they accrue interest and returns)
+        // For simplicity in a yearly loop, we add it to the balance.
+        currentLoan += totalAnnualContribution;
+        currentInvestment += totalAnnualContribution;
+
+        // 2. Calculate Interest for the year based on current loan balance
         const yearlyInterest = currentLoan * helocRate;
         totalInterestPaid += yearlyInterest;
 
-        // 2. Calculate Tax Refund (Interest is tax-deductible)
+        // 3. Calculate Tax Refund (Interest is tax-deductible)
         const yearlyTaxRefund = yearlyInterest * marginalTaxRate;
         totalTaxRefunds += yearlyTaxRefund;
 
-        // 3. Handle capitalization vs cash flow
+        // 4. Handle capitalization vs cash flow
         let outOfPocketInterest = 0;
         if (capitalizeInterest) {
-            // If capitalized, the loan grows by the amount of interest paid (less tax refund applied if reinvested, but typically SM implies borrowing the full interest)
-            // Usually, people borrow the exact interest amount to pay the interest.
             currentLoan += yearlyInterest;
-
-            // The tax refund is normally reinvested to pay down the loan or buy more investments.
-            // Standard SM: apply tax refund to mortgage (which then increases available HELOC limit to invest).
-            // For simplicity here: we assume tax refund reduces the loan balance at end of year.
             currentLoan -= yearlyTaxRefund;
         } else {
-            // Interest is paid from cash flow, loan stays the same
-            outOfPocketInterest = yearlyInterest - yearlyTaxRefund; // Net out of pocket after refund
+            outOfPocketInterest = yearlyInterest - yearlyTaxRefund;
         }
 
-        // 4. Calculate Investment Growth
+        // 5. Calculate Investment Growth
         const investmentGrowth = currentInvestment * annualReturn;
         currentInvestment += investmentGrowth;
 

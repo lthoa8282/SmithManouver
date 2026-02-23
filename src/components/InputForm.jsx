@@ -12,7 +12,9 @@ export default function InputForm({ onCalculate }) {
         helocRate: 6.5,
         etfSymbol: 'XEQT.TO',
         years: 15,
-        capitalizeInterest: true
+        capitalizeInterest: true,
+        periodicContribution: 0,
+        contributionFrequency: 'monthly'
     });
 
     const [customETF, setCustomETF] = useState('');
@@ -63,6 +65,7 @@ export default function InputForm({ onCalculate }) {
             helocAmount: Number(formData.helocAmount),
             helocRate: Number(formData.helocRate) / 100, // convert percentage
             years: Number(formData.years),
+            periodicContribution: Number(formData.periodicContribution),
             selectedETF: availableETFs.find(e => e.symbol === formData.etfSymbol)
         });
     };
@@ -142,6 +145,35 @@ export default function InputForm({ onCalculate }) {
                             step="0.1"
                             required
                         />
+                    </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="input-group">
+                        <label>Periodic HELOC Addition ($)</label>
+                        <input
+                            type="number"
+                            name="periodicContribution"
+                            className="input-control"
+                            value={formData.periodicContribution}
+                            onChange={handleChange}
+                            min="0"
+                            step="100"
+                        />
+                        <small style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Amount to add to HELOC and invest.</small>
+                    </div>
+
+                    <div className="input-group">
+                        <label>Contribution Frequency</label>
+                        <select
+                            name="contributionFrequency"
+                            className="input-control"
+                            value={formData.contributionFrequency}
+                            onChange={handleChange}
+                        >
+                            <option value="monthly">Monthly</option>
+                            <option value="annually">Annually</option>
+                        </select>
                     </div>
                 </div>
 
