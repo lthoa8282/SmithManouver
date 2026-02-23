@@ -32,20 +32,15 @@ export function calculateSmithManoeuvre({
     const totalAnnualContribution = contributionFrequency === 'monthly' ? periodicContribution * 12 : periodicContribution;
 
     for (let year = 1; year <= years; year++) {
-        // 1. Process new contributions (assume added at start/throughout year, so they accrue interest and returns)
-        // For simplicity in a yearly loop, we add it to the balance.
-        currentLoan += totalAnnualContribution;
-        currentInvestment += totalAnnualContribution;
-
-        // 2. Calculate Interest for the year based on current loan balance
+        // 1. Calculate Interest for the year based on current loan balance (before this year's new contributions)
         const yearlyInterest = currentLoan * helocRate;
         totalInterestPaid += yearlyInterest;
 
-        // 3. Calculate Tax Refund (Interest is tax-deductible)
+        // 2. Calculate Tax Refund (Interest is tax-deductible)
         const yearlyTaxRefund = yearlyInterest * marginalTaxRate;
         totalTaxRefunds += yearlyTaxRefund;
 
-        // 4. Handle capitalization vs cash flow
+        // 3. Handle capitalization vs cash flow
         let outOfPocketInterest = 0;
         if (capitalizeInterest) {
             currentLoan += yearlyInterest;
@@ -54,9 +49,13 @@ export function calculateSmithManoeuvre({
             outOfPocketInterest = yearlyInterest - yearlyTaxRefund;
         }
 
-        // 5. Calculate Investment Growth
+        // 4. Calculate Investment Growth (on the balance before this year's new contributions)
         const investmentGrowth = currentInvestment * annualReturn;
         currentInvestment += investmentGrowth;
+
+        // 5. Process new contributions at the END of the year
+        currentLoan += totalAnnualContribution;
+        currentInvestment += totalAnnualContribution;
 
         yearlyData.push({
             year,
