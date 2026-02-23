@@ -71,26 +71,25 @@ export function calculateSmithManoeuvre({
 
     // Final Summary Calculations
     const finalNetWorth = currentInvestment - currentLoan;
-    const initialNetWorth = 0; // Purely from the SM setup (Investment = Loan initially)
-    const totalNetGain = finalNetWorth - initialNetWorth;
 
-    // Return on Capital (ROC)
-    // If not capitalizing, user put out cash for interest. ROC = Gain / Total Out of Pocket Cash
-    // If capitalizing, out of pocket is technically 0 (or just the initial setup fees), making ROC infinite.
-    // However, if they are making periodic contributions, that IS out of pocket cash going into the strategy.
+    // User requested specific formula for Total Net Gain: 
+    // Investment Value - Final HELOC Balance + Tax Refund - Interest Paid
+    let totalNetGain = currentInvestment - currentLoan + totalTaxRefunds - totalInterestPaid;
 
+    // For ROC, if they are making periodic contributions, that IS out of pocket cash going into the strategy
+    // which shouldn't be counted as "gain" for the ROC calculation.
     let outOfPocketTotal = 0;
     if (!capitalizeInterest) {
         outOfPocketTotal = yearlyData.reduce((sum, data) => sum + data.outOfPocketInterest, 0);
     }
 
-    // Add the total periodic contributions to the out of pocket cost base
-    const totalPeriodicContributions = totalAnnualContribution * years;
-    outOfPocketTotal += totalPeriodicContributions;
+    // True financial gain (Net Worth - Initial Net Worth - Out of Pocket Contributions)
+    // We use this for ROC instead of the user's specific "Total Net Gain" formula to keep the percentage accurate.
+    const trueFinancialGain = finalNetWorth - totalPeriodicContributions;
 
     let roc = 0;
     if (outOfPocketTotal > 0) {
-        roc = (totalNetGain / outOfPocketTotal) * 100;
+        roc = (trueFinancialGain / outOfPocketTotal) * 100;
     } else {
         // If they capitalized and contributed $0 periodically, calculate ROC based on the initial HELOC draw
         roc = (finalNetWorth / initialInvestment) * 100;
