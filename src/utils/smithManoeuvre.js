@@ -75,16 +75,26 @@ export function calculateSmithManoeuvre({
     const totalNetGain = finalNetWorth - initialNetWorth;
 
     // Return on Capital (ROC)
-    // If not capitalizing, user put out cash. ROC = Gain / Total Out of Pocket Cash
+    // If not capitalizing, user put out cash for interest. ROC = Gain / Total Out of Pocket Cash
     // If capitalizing, out of pocket is technically 0 (or just the initial setup fees), making ROC infinite.
-    // We'll calculate a simple "Return on Loan" for capitalized, and standard ROC for cashflow.
+    // However, if they are making periodic contributions, that IS out of pocket cash going into the strategy.
 
     let outOfPocketTotal = 0;
     if (!capitalizeInterest) {
         outOfPocketTotal = yearlyData.reduce((sum, data) => sum + data.outOfPocketInterest, 0);
     }
 
-    const roc = outOfPocketTotal > 0 ? (totalNetGain / outOfPocketTotal) * 100 : ((finalNetWorth / initialInvestment) * 100);
+    // Add the total periodic contributions to the out of pocket cost base
+    const totalPeriodicContributions = totalAnnualContribution * years;
+    outOfPocketTotal += totalPeriodicContributions;
+
+    let roc = 0;
+    if (outOfPocketTotal > 0) {
+        roc = (totalNetGain / outOfPocketTotal) * 100;
+    } else {
+        // If they capitalized and contributed $0 periodically, calculate ROC based on the initial HELOC draw
+        roc = (finalNetWorth / initialInvestment) * 100;
+    }
 
     const summary = {
         finalInvestmentValue: currentInvestment,
