@@ -53,10 +53,7 @@ export function calculateSmithManoeuvre({
         const investmentGrowth = currentInvestment * annualReturn;
         currentInvestment += investmentGrowth;
 
-        // 5. Process new contributions at the END of the year
-        currentLoan += totalAnnualContribution;
-        currentInvestment += totalAnnualContribution;
-
+        // Snapshot the values for the display table BEFORE adding next year's contributions to the end-of-year balance
         yearlyData.push({
             year,
             loanBalance: currentLoan,
@@ -66,6 +63,10 @@ export function calculateSmithManoeuvre({
             outOfPocketInterest,
             netWorth: currentInvestment - currentLoan
         });
+
+        // 5. Process new contributions at the very END of the year (this will be the starting balance for next year's row in the UI)
+        currentLoan += totalAnnualContribution;
+        currentInvestment += totalAnnualContribution;
     }
 
     // Final Summary Calculations
