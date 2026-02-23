@@ -83,6 +83,10 @@ export function calculateSmithManoeuvre({
         outOfPocketTotal = yearlyData.reduce((sum, data) => sum + data.outOfPocketInterest, 0);
     }
 
+    // Add the total periodic contributions to the out of pocket cost base
+    const totalPeriodicContributions = totalAnnualContribution * years;
+    outOfPocketTotal += totalPeriodicContributions;
+
     // True financial gain (Net Worth - Initial Net Worth - Out of Pocket Contributions)
     // We use this for ROC instead of the user's specific "Total Net Gain" formula to keep the percentage accurate.
     const trueFinancialGain = finalNetWorth - totalPeriodicContributions;
