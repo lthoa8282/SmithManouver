@@ -21,7 +21,9 @@ function App() {
       marginalTaxRate: marginalRate,
       annualReturn: params.selectedETF ? params.selectedETF.defaultReturn : 0.08,
       years: params.years,
-      capitalizeInterest: params.capitalizeInterest
+      capitalizeInterest: params.capitalizeInterest,
+      periodicContribution: params.periodicContribution,
+      contributionFrequency: params.contributionFrequency
     });
 
     setResultsData({ ...data, marginalRate });
