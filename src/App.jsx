@@ -23,7 +23,9 @@ function App() {
       years: params.years,
       capitalizeInterest: params.capitalizeInterest,
       periodicContribution: params.periodicContribution,
-      contributionFrequency: params.contributionFrequency
+      contributionFrequency: params.contributionFrequency,
+      income: params.income,
+      province: params.province
     });
 
     setResultsData({ ...data, marginalRate });

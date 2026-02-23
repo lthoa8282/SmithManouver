@@ -1,3 +1,5 @@
+import { calculateTax } from './taxCalculator.js';
+
 /**
  * Calculates the Smith Manoeuvre projection over a number of years.
  * @param {object} params
@@ -9,6 +11,8 @@
  * @param {boolean} params.capitalizeInterest True if borrowing to pay interest.
  * @param {number} params.periodicContribution Amount to add to HELOC and invest periodically.
  * @param {string} params.contributionFrequency 'monthly' or 'annually'.
+ * @param {number} params.income User's annual income.
+ * @param {string} params.province User's province.
  * @returns {object} { yearlyData: Array, summary: Object }
  */
 export function calculateSmithManoeuvre({
@@ -19,7 +23,9 @@ export function calculateSmithManoeuvre({
     years,
     capitalizeInterest,
     periodicContribution = 0,
-    contributionFrequency = 'annually'
+    contributionFrequency = 'annually',
+    income,
+    province
 }) {
     const yearlyData = [];
     let currentLoan = initialInvestment;
@@ -37,7 +43,12 @@ export function calculateSmithManoeuvre({
         totalInterestPaid += yearlyInterest;
 
         // 2. Calculate Tax Refund (Interest is tax-deductible)
-        const yearlyTaxRefund = yearlyInterest * marginalTaxRate;
+        // Simple multiplication by marginal rate is inaccurate if the deduction crosses brackets downwards.
+        // Tax Refund = (Tax on Gross Income) - (Tax on Income after Interest Deduction)
+        const baseTax = calculateTax(income, province).totalTax;
+        const reducedTax = calculateTax(income - yearlyInterest, province).totalTax;
+        const yearlyTaxRefund = baseTax - reducedTax;
+
         totalTaxRefunds += yearlyTaxRefund;
 
         // 3. Handle capitalization vs cash flow
